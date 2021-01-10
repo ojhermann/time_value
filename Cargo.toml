@@ -5,6 +5,7 @@ authors = ["Otto Hermann <ojhermann@gmail.com>"]
 edition = "2018"
 description = "A collection of functions related to time value analysis."
 license = "MIT OR Apache-2.0"
+repository = ""
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
