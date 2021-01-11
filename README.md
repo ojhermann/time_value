@@ -3,6 +3,7 @@ A collection of functions related to time value analysis.
 
 ## Contents
 - [`future_value`](#future_value)
+- [`present_value`](#present_value)
 
 ## [`future_value`](https://github.com/ojhermann/time_value/blob/master/src/future_value.rs)
 A collection of functions for calculating future values.
