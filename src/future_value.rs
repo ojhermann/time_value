@@ -28,7 +28,6 @@ use std::slice::Iter;
 /// assert_eq!(value, expected_value);
 /// ```
 ///
-/// ///
 /// # Example with f64
 /// Assumptions
 /// - Initial investment: EUR 10
