@@ -1,7 +1,7 @@
 //! A collection of functions for calculating future values.
 
 use num::Float;
-use std::iter::Product;
+use std::iter::{Product, Sum};
 use std::slice::Iter;
 
 #[allow(dead_code)]
