@@ -144,30 +144,24 @@ mod from_cash_flows_and_discount_rate_tests {
     use num::abs;
 
     #[test]
-    fn it_works_with_zero() {
-        let cash_flows: Vec<f32> = vec![10.0];
-        let discount_rate: f32 = 0.10;
-        assert_eq!(
-            cash_flows[0],
-            from_cash_flows_and_discount_rate(cash_flows.iter(), &discount_rate)
-        )
+    fn it_works_with_a_positive_npv() {
+        let cash_flows: Vec<f32> = vec![0.0, 1.0, -1.0, 1234.56789, -1234.56789];
+        let discount_rate: f32 = 0.20;
+        let precision: f32 = 0.001;
+        let expected_value: f32 = 119.2137;
+        let actual_value: f32 =
+            from_cash_flows_and_discount_rate(cash_flows.iter(), &discount_rate);
+        assert!(abs(expected_value - actual_value) <= precision);
     }
 
     #[test]
-    fn it_works_with_one() {
-        let cash_flows: Vec<f64> = vec![10.0, 10.0];
-        let discount_rate: f64 = 0.10;
-        let value: f64 = from_cash_flows_and_discount_rate(cash_flows.iter(), &discount_rate);
-        let expected_value: f64 = 19.0;
-        assert!(abs(value - expected_value) < 0.1);
-    }
-
-    #[test]
-    fn it_works_with_two() {
-        let cash_flows: Vec<f64> = vec![10.0, 10.0, 10.0];
-        let discount_rate: f64 = 0.10;
-        let value: f64 = from_cash_flows_and_discount_rate(cash_flows.iter(), &discount_rate);
-        let expected_value: f64 = 27.35;
-        assert!(abs(value - expected_value) < 0.01);
+    fn it_works_with_a_negative_npv() {
+        let cash_flows: Vec<f32> = vec![-500.0, 100.0, 2.0, 3.0, 4.0];
+        let discount_rate: f32 = 0.30;
+        let precision: f32 = 0.001;
+        let expected_value: f32 = -419.1275;
+        let actual_value: f32 =
+            from_cash_flows_and_discount_rate(cash_flows.iter(), &discount_rate);
+        assert!(abs(expected_value - actual_value) <= precision);
     }
 }
