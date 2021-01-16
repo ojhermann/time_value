@@ -1,23 +1,15 @@
 use num::{abs, Float, Signed};
-use std::fmt;
 use std::iter::{Product, Sum};
 use std::slice::Iter;
 
 use crate::present_value::from_cash_flows_and_discount_rate as pv;
 
-pub fn is_irr<T>(guess_npv: &T, allowed_error: &T) -> bool
+fn generate_initial_bounds<T>(cash_flows: Iter<T>, guess: &T, allowed_error: &T) -> (T, T)
 where
-    T: Float + Product<T> + Sum<T> + Signed + fmt::Display,
-{
-    abs(*guess_npv) <= *allowed_error
-}
-
-pub fn generate_initial_bounds<T>(cash_flows: Iter<T>, guess: &T, allowed_error: &T) -> (T, T)
-where
-    T: Float + Product<T> + Sum<T> + Signed + fmt::Display,
+    T: Float + Product<T> + Sum<T> + Signed,
 {
     let guess_npv: T = pv(cash_flows.clone(), guess);
-    if is_irr(&guess_npv, allowed_error) {
+    if abs(guess_npv) <= *allowed_error {
         return (*guess, *guess);
     }
 
@@ -53,70 +45,82 @@ where
     }
 }
 
-// #[cfg(test)]
-// mod is_irr_tests {
-//     use crate::present_value::from_cash_flows_and_discount_rate as pv;
-//     use crate::irr::is_irr;
-//
-//     #[test]
-//     fn it_works_for_correct_guesses() {
-//         let cash_flows: Vec<f64> = vec![-100.00, 50.00, 50.00, 50.00, 50.00, 50.00, 50.00];
-//         let guess: f64 = 0.46557;
-//         let allowed_error: f64 = 0.01;
-//         let npv: f64 = pv(cash_flows.iter(), &guess);
-//         assert_eq!(npv, 0.0);
-//         assert!(is_irr(&npv, &allowed_error));
-//     }
-// }
-
 #[cfg(test)]
 mod generate_initial_bounds_tests {
     use crate::irr::generate_initial_bounds;
+    use crate::present_value::from_cash_flows_and_discount_rate as pv;
+    use num::abs;
 
     #[test]
     fn it_works_if_passed_irr() {
+        let cash_flows: Vec<f32> = vec![-100.0, 50.0, 10.0, 0.0, 5.0];
+        let discount_rate: f32 = -0.24888;
+        let precision: f32 = 0.001;
 
+        let present_value: f32 = pv(cash_flows.iter(), &discount_rate);
+        assert!(abs(present_value) <= precision);
+
+        let (left, right): (f32, f32) =
+            generate_initial_bounds(cash_flows.iter(), &discount_rate, &precision);
+        assert_eq!(left, right);
+        assert_eq!(left, discount_rate);
     }
 
     #[test]
-    fn it_works_from_a_low_guess_if_found_before_iteration() {
+    fn it_can_solve_from_a_low_guess() {
+        // positive IRR
+        let cash_flows: Vec<f32> = vec![-100.0, 50.0, 50.0, 50.0, 50.0];
+        let guess: f32 = 0.25;
+        let allowed_error: f32 = 0.001;
 
+        let (left, right): (f32, f32) =
+            generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+        assert!(left < right);
+
+        let left_npv: f32 = pv(cash_flows.iter(), &left);
+        let right_npv: f32 = pv(cash_flows.iter(), &right);
+        assert!(left_npv * right_npv <= 0.0);
+
+        //negative IRR
+        let cash_flows: Vec<f32> = vec![-100.0, 50.0, 10.0, 0.0, 5.0];
+        let guess: f32 = -0.35;
+        let allowed_error: f32 = 0.001;
+
+        let (left, right): (f32, f32) =
+            generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+        assert!(left < right);
+
+        let left_npv: f32 = pv(cash_flows.iter(), &left);
+        let right_npv: f32 = pv(cash_flows.iter(), &right);
+        assert!(left_npv * right_npv <= 0.0);
     }
 
     #[test]
-    fn it_works_from_a_low_guess_if_found_via_iteration() {
-        let cash_flows: Vec<f32> = vec![-100.00, 50.00, 50.00, 50.00, 50.00, 50.00, 50.00];
-        let guess: f32 = 0.46557;
-        let allowed_error: f32 = 0.01;
-        let (left, right): (f32, f32) = generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
-        assert!(left <= right);
-        assert_eq!((left, right), (1.0, 2.0));
+    fn it_can_solve_from_a_high_guess() {
+        // positive IRR
+        let cash_flows: Vec<f32> = vec![-100.0, 50.0, 50.0, 50.0, 50.0];
+        let guess: f32 = 0.50;
+        let allowed_error: f32 = 0.001;
+
+        let (left, right): (f32, f32) =
+            generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+        assert!(left < right);
+
+        let left_npv: f32 = pv(cash_flows.iter(), &left);
+        let right_npv: f32 = pv(cash_flows.iter(), &right);
+        assert!(left_npv * right_npv <= 0.0);
+
+        //negative IRR
+        let cash_flows: Vec<f32> = vec![-100.0, 50.0, 10.0, 0.0, 5.0];
+        let guess: f32 = 0.15;
+        let allowed_error: f32 = 0.001;
+
+        let (left, right): (f32, f32) =
+            generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+        assert!(left < right);
+
+        let left_npv: f32 = pv(cash_flows.iter(), &left);
+        let right_npv: f32 = pv(cash_flows.iter(), &right);
+        assert!(left_npv * right_npv <= 0.0);
     }
-
-    #[test]
-    fn it_works_from_a_high_guess_if_found_before_iteration() {
-
-    }
-
-    #[test]
-    fn it_works_from_a_high_guess_found_via_iteration() {
-
-    }
-    //
-    // #[test]
-    // fn it_works_from_a_low_guess_which_means_it_pursues_guess_more() {
-    //     let cash_flows: Vec<f32> = vec![-100.00, 50.00, 50.00, 50.00, 50.00, 50.00, 50.00];
-    //     let mut guess: f32 = 0.10;
-    //     let allowed_error: f32 = 0.01;
-    //     let (left, right): (f32, f32) = generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
-    //     assert!(left <= right);
-    //     assert_eq!(left, 0.4);
-    //     assert_eq!(right, 0.5);
-    //
-    //     guess = 0.30;
-    //     let (left, right): (f32, f32) = generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
-    //     assert!(left <= right);
-    //     assert_eq!(left, 0.6);
-    //     assert_eq!(right, 0.6);
-    // }
 }
