@@ -1,87 +1,122 @@
-use crate::present_value;
-use num::{abs, Float, Unsigned};
+use num::{abs, Float, Signed};
+use std::fmt;
 use std::iter::{Product, Sum};
 use std::slice::Iter;
-use crate::present_value::from_cash_flows_and_discount_rate;
 
-pub fn bisection<T, U>(cash_flows: Iter<T>, discount_rate_guess: &T, tolerance: &T) -> T
+use crate::present_value::from_cash_flows_and_discount_rate as pv;
+
+pub fn is_irr<T>(guess_npv: &T, allowed_error: &T) -> bool
 where
-    T: Float + Product<T> + Sum<T>,
-    U: Iterator
+    T: Float + Product<T> + Sum<T> + Signed + fmt::Display,
 {
-    let mut discount_rate: T = *discount_rate_guess;
-    let mut npv: T = present_value::from_cash_flows_and_discount_rate(cash_flows, &discount_rate);
-
-    while tolerance < &npv {}
-
-    discount_rate
+    abs(*guess_npv) <= *allowed_error
 }
 
-fn generate_bounds<T>(
-    cash_flows: Iter<T>,
-    discount_rate_guess: &T,
-    tolerance: &T,
-    limit: i16,
-) -> (T, T)
+pub fn generate_initial_bounds<T>(cash_flows: Iter<T>, guess: &T, allowed_error: &T) -> (T, T)
 where
-    T: Float + Product<T> + Sum<T>,
+    T: Float + Product<T> + Sum<T> + Signed + fmt::Display,
 {
-    let (mut left, mut right): (T, T) = generate_initial_bounds(discount_rate_guess);
-
-    let mut count: i16 = 0;
-
-
-    while count < limit {
-        count += 1;
-
+    let guess_npv: T = pv(cash_flows.clone(), guess);
+    if is_irr(&guess_npv, allowed_error) {
+        return (*guess, *guess);
     }
 
-    (left, right)
-}
-
-fn generate_initial_bounds<T>(discount_rate_guess: &T) -> (T, T)
-where
-    T: Float + Product<T> + Sum<T>,
-{
-    if discount_rate_guess == &T::zero() {
-        return (-T::one(), T::one());
+    let mut guess_less: T = *guess - abs(*guess);
+    let mut guess_less_npv: T = pv(cash_flows.clone(), &guess_less);
+    if guess_npv * guess_less_npv <= T::zero() {
+        return (guess_less, *guess);
     }
 
-    let mut left: T;
-    let mut right: T;
-    if discount_rate_guess < &T::zero() {
-        left = *discount_rate_guess;
-        right = *discount_rate_guess * -T::one();
+    let mut guess_more: T = *guess + abs(*guess);
+    let mut guess_more_npv: T = pv(cash_flows.clone(), &guess_more);
+    if guess_npv * guess_more_npv <= T::zero() {
+        return (*guess, guess_more);
+    }
+
+    if abs(guess_less_npv) < abs(guess_more_npv) {
+        // all guesses have the same sign, so we iterate over the guess brining us closer to zero
+        loop {
+            guess_less = guess_less - abs(*guess);
+            guess_less_npv = pv(cash_flows.clone(), &guess_less);
+            if guess_less_npv * guess_npv <= *allowed_error {
+                return (guess_less, guess_less + abs(*guess));
+            }
+        }
     } else {
-        left = *discount_rate_guess * -T::one();
-        right = *discount_rate_guess;
+        loop {
+            guess_more = guess_more + abs(*guess);
+            guess_more_npv = pv(cash_flows.clone(), &guess_more);
+            if guess_more_npv * guess_npv <= *allowed_error {
+                return (guess_more - abs(*guess), guess_more);
+            }
+        }
     }
-
-    (left, right)
 }
+
+// #[cfg(test)]
+// mod is_irr_tests {
+//     use crate::present_value::from_cash_flows_and_discount_rate as pv;
+//     use crate::irr::is_irr;
+//
+//     #[test]
+//     fn it_works_for_correct_guesses() {
+//         let cash_flows: Vec<f64> = vec![-100.00, 50.00, 50.00, 50.00, 50.00, 50.00, 50.00];
+//         let guess: f64 = 0.46557;
+//         let allowed_error: f64 = 0.01;
+//         let npv: f64 = pv(cash_flows.iter(), &guess);
+//         assert_eq!(npv, 0.0);
+//         assert!(is_irr(&npv, &allowed_error));
+//     }
+// }
 
 #[cfg(test)]
 mod generate_initial_bounds_tests {
     use crate::irr::generate_initial_bounds;
 
     #[test]
-    fn it_works_for_zero_as_input() {
-        for b in vec![0.0] {
-            assert_eq!((-1.0, 1.0), generate_initial_bounds(&b));
-        }
+    fn it_works_if_passed_irr() {
+
     }
 
     #[test]
-    fn it_works_for_positive_inputs() {
-        for b in vec![0.1, 0.2, 0.3, 0.4, 0.5] {
-            assert_eq!((-b, b), generate_initial_bounds(&b));
-        }
+    fn it_works_from_a_low_guess_if_found_before_iteration() {
+
     }
 
     #[test]
-    fn it_works_for_negative_inputs() {
-        for b in vec![-0.1, -0.2, -0.3, -0.4, -0.5] {
-            assert_eq!((b, -b), generate_initial_bounds(&b));
-        }
+    fn it_works_from_a_low_guess_if_found_via_iteration() {
+        let cash_flows: Vec<f32> = vec![-100.00, 50.00, 50.00, 50.00, 50.00, 50.00, 50.00];
+        let guess: f32 = 0.46557;
+        let allowed_error: f32 = 0.01;
+        let (left, right): (f32, f32) = generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+        assert!(left <= right);
+        assert_eq!((left, right), (1.0, 2.0));
     }
+
+    #[test]
+    fn it_works_from_a_high_guess_if_found_before_iteration() {
+
+    }
+
+    #[test]
+    fn it_works_from_a_high_guess_found_via_iteration() {
+
+    }
+    //
+    // #[test]
+    // fn it_works_from_a_low_guess_which_means_it_pursues_guess_more() {
+    //     let cash_flows: Vec<f32> = vec![-100.00, 50.00, 50.00, 50.00, 50.00, 50.00, 50.00];
+    //     let mut guess: f32 = 0.10;
+    //     let allowed_error: f32 = 0.01;
+    //     let (left, right): (f32, f32) = generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+    //     assert!(left <= right);
+    //     assert_eq!(left, 0.4);
+    //     assert_eq!(right, 0.5);
+    //
+    //     guess = 0.30;
+    //     let (left, right): (f32, f32) = generate_initial_bounds(cash_flows.iter(), &guess, &allowed_error);
+    //     assert!(left <= right);
+    //     assert_eq!(left, 0.6);
+    //     assert_eq!(right, 0.6);
+    // }
 }
