@@ -11,3 +11,6 @@ repository = "https://github.com/ojhermann/time_value"
 
 [dependencies]
 num = "0.3"
+
+[dev-dependencies]
+rand = "0.8.2"
