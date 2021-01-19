@@ -1,6 +1,6 @@
 [package]
 name = "time_value"
-version = "0.3.2"
+version = "0.4.0"
 authors = ["Otto Hermann <ojhermann@gmail.com>"]
 edition = "2018"
 description = "A collection of functions related to time value analysis."
@@ -11,3 +11,6 @@ repository = "https://github.com/ojhermann/time_value"
 
 [dependencies]
 num = "0.3"
+
+[dev-dependencies]
+rand = "0.8.2"
