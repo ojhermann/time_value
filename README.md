@@ -3,7 +3,7 @@ A collection of functions related to time value analysis.
 
 ## Contents
 - [`future_value`](#future_value)
-## [`irr`](#irr)
+- [`irr`](#irr)
 - [`present_value`](#present_value)
 
 
