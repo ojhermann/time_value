@@ -1,6 +1,6 @@
-//! A collection of functions for calculating the internal rate of return (IRR) of a series of cash flows.
+//! Calculate the IRR of a series of cash flows with the bisection method.
 
-use num::{abs, Float, Signed};
+use num::{abs, Float, Signed, Zero};
 use std::iter::{Product, Sum};
 
 use crate::present_value::from_cash_flows_and_discount_rate as pv;
@@ -12,8 +12,8 @@ use std::slice::Iter;
 /// # Comments
 /// Designed so that functions for determining acceptable initial bounds for the bisection function can be more easily developed.
 pub struct IrrApproximation<T>
-where
-    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     rate_guess_one: T,
     npv_guess_one: T,
@@ -27,8 +27,8 @@ where
 }
 
 impl<T> Debug for IrrApproximation<T>
-where
-    T: Float + Product<T> + Sum<T> + Signed + Debug + Display,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Debug + Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         f.debug_struct("IrrApproximation")
@@ -46,8 +46,8 @@ where
 }
 
 impl<T> Display for IrrApproximation<T>
-where
-    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
@@ -67,8 +67,8 @@ where
 }
 
 impl<T> IrrApproximation<T>
-where
-    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     pub fn get_rate_guess_one(&self) -> T {
         self.rate_guess_one
@@ -114,7 +114,7 @@ where
 ///
 /// # Example with f32
 /// ```
-/// use time_value::irr::{calculate_mid_point, are_equal_enough};
+/// use time_value::irr::bisection::function::{calculate_mid_point, are_equal_enough};
 ///
 /// let a: f32 = 1.0;
 /// let b: f32 = 2.0;
@@ -122,8 +122,8 @@ where
 /// assert!(are_equal_enough(&mid_point, &1.5));
 /// ```
 pub fn calculate_mid_point<T>(a: &T, c: &T) -> T
-where
-    T: Float + Product<T> + Sum<T> + Signed,
+    where
+        T: Float + Product<T> + Sum<T> + Signed,
 {
     *a + (*c - *a) / T::from(2.0).unwrap()
 }
@@ -135,7 +135,7 @@ where
 ///
 /// # Example with f32
 /// ```
-/// use time_value::irr::are_equal_enough;
+/// use time_value::irr::bisection::function::are_equal_enough;
 ///
 /// let a: f32 = 0.0010;
 /// let b: f32 = 0.0010;
@@ -145,8 +145,8 @@ where
 /// assert!(!are_equal_enough(&a, &c));
 /// ```
 pub fn are_equal_enough<T>(a: &T, c: &T) -> bool
-where
-    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     let difference: T = abs(*a - *c);
     let a_abs: T = abs(*a);
@@ -171,7 +171,7 @@ pub const NPV_PRECISION: f32 = 0.001;
 ///
 /// # Example with f32
 /// ```
-/// use time_value::irr::{IrrApproximation, NPV_PRECISION, bisection as irr};
+/// use time_value::irr::bisection::function::{IrrApproximation, NPV_PRECISION, bisection as irr};
 ///
 /// let cash_flows: Vec<f32> = vec![-100.0, 50.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,];
 /// let rate_left: f32 = 0.05;
@@ -184,7 +184,7 @@ pub const NPV_PRECISION: f32 = 0.001;
 ///
 /// # Example with f64
 /// ```
-/// use time_value::irr::{IrrApproximation, NPV_PRECISION, bisection as irr};
+/// use time_value::irr::bisection::function::{IrrApproximation, NPV_PRECISION, bisection as irr};
 ///
 /// let cash_flows: Vec<f64> = vec![-122.3990963, 24.26782424, -18.61877741, -2.555946884, -8.814622596, 32.05035057, 12.11973328, 7.743486592, 9.158469173, -21.97032692, 11.18895709];
 /// let rate_left: f64 = -0.25;
@@ -200,8 +200,8 @@ pub fn bisection<T>(
     rate_c: &T,
     iteration_limit: &i16,
 ) -> IrrApproximation<T>
-where
-    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     let mut rate_a: T = *rate_a;
     let mut rate_c: T = *rate_c;
@@ -255,9 +255,10 @@ where
     }
 }
 
+
 #[cfg(test)]
 mod bisection_tests {
-    use crate::irr::{bisection as irr, IrrApproximation, NPV_PRECISION};
+    use crate::irr::bisection::function::{bisection as irr, IrrApproximation, NPV_PRECISION};
     use num::{Float, Signed};
     use rand::distributions::uniform::SampleUniform;
     use rand::prelude::ThreadRng;
@@ -266,8 +267,8 @@ mod bisection_tests {
     use std::iter::{Product, Sum};
 
     fn generate_random_cash_flows<T>(thread_range: &mut ThreadRng, vector_size: &i16) -> Vec<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug + SampleUniform,
+        where
+            T: Float + Product<T> + Sum<T> + Signed + Display + Debug + SampleUniform,
     {
         //ensure the first element is negative
         let mut cash_flows: Vec<T> =
