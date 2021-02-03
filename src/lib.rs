@@ -14,6 +14,7 @@ pub mod irr {
             //! Functions used for the bisection method (and related methods)
 
             pub mod are_equal_enough;
+            pub mod initial_bounds;
             pub mod irr;
             pub mod midpoint;
         }
@@ -21,6 +22,7 @@ pub mod irr {
         pub mod structs {
             //! Structs used with the bisection method
 
+            pub mod initial_bounds;
             pub mod irr;
         }
     }

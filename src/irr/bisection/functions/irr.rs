@@ -48,9 +48,14 @@ use std::slice::Iter;
 /// assert!(calculated_irr.is_valid());
 /// assert!(calculated_irr.get_npv() <= f64::from(NPV_PRECISION));
 /// ```
-pub fn bisection<T>(cash_flows: Iter<T>, rate_low_guess: &T, rate_high_guess: &T, iteration_limit: &i16) -> Irr<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+pub fn bisection<T>(
+    cash_flows: Iter<T>,
+    rate_low_guess: &T,
+    rate_high_guess: &T,
+    iteration_limit: &i16,
+) -> Irr<T>
+where
+    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     let mut rate_low: T = *rate_low_guess;
     let mut rate_high: T = *rate_high_guess;
@@ -107,7 +112,10 @@ pub fn bisection<T>(cash_flows: Iter<T>, rate_low_guess: &T, rate_high_guess: &T
 
 #[cfg(test)]
 mod bisection_tests {
+    use crate::irr::bisection::functions::initial_bounds;
     use crate::irr::bisection::functions::irr::{bisection as irr, Irr, NPV_PRECISION};
+    use crate::irr::bisection::structs::initial_bounds::InitialBounds;
+
     use num::{Float, Signed};
     use rand::distributions::uniform::SampleUniform;
     use rand::prelude::ThreadRng;
@@ -116,8 +124,8 @@ mod bisection_tests {
     use std::iter::{Product, Sum};
 
     fn generate_random_cash_flows<T>(thread_range: &mut ThreadRng, vector_size: &i16) -> Vec<T>
-        where
-            T: Float + Product<T> + Sum<T> + Signed + Display + Debug + SampleUniform,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug + SampleUniform,
     {
         //ensure the first element is negative
         let mut cash_flows: Vec<T> =
@@ -131,26 +139,35 @@ mod bisection_tests {
 
     #[test]
     fn it_works_with_random_inputs() {
-        // right now most of these will fail as the guesses are generally off
-        // if a range finding function is added, I'll do random value tests that will attempt or not and test on that
         let mut thread_range: ThreadRng = thread_rng();
         let vector_size: i16 = 20;
-        let rate_low_guess: f32 = -100.0;
-        let rate_high_guess: f32 = 100.0;
+        let rate_guess: f32 = 0.05;
         let iteration_limit: i16 = 1_000;
         let mut cash_flows: Vec<f32> = generate_random_cash_flows(&mut thread_range, &vector_size);
 
         for _ in 0..100 {
-            let calculated_irr: Irr<f32> =
-                irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+            let initial_bounds: InitialBounds<f32> =
+                initial_bounds::determine(cash_flows.iter(), &rate_guess, &iteration_limit);
 
-            match calculated_irr.is_valid() {
-                true => assert!(calculated_irr.get_npv() <= NPV_PRECISION),
-                false => match calculated_irr.get_iterations_run() {
-                    0 => assert!(calculated_irr.get_irr().is_nan()),
-                    _ => assert_eq!(calculated_irr.get_iterations_run(), iteration_limit),
-                },
+            if initial_bounds.is_valid() {
+                let calculated_irr: Irr<f32> = irr(
+                    cash_flows.iter(),
+                    &initial_bounds.get_rate_low(),
+                    &initial_bounds.get_rate_high(),
+                    &iteration_limit,
+                );
+
+                if calculated_irr.is_valid() {
+                    assert!(calculated_irr.get_npv() <= NPV_PRECISION);
+                } else {
+                    if calculated_irr.get_iterations_run() == 0 {
+                        assert!(calculated_irr.get_irr().is_nan())
+                    } else {
+                        assert!(calculated_irr.get_iterations_run() <= iteration_limit)
+                    }
+                }
             }
+
             cash_flows = generate_random_cash_flows(&mut thread_range, &vector_size);
         }
     }
@@ -163,8 +180,12 @@ mod bisection_tests {
         let rate_low_guess: f32 = 0.05;
         let rate_high_guess: f32 = 0.18;
         let iteration_limit: i16 = 100;
-        let irr_approximation: Irr<f32> =
-            irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+        let irr_approximation: Irr<f32> = irr(
+            cash_flows.iter(),
+            &rate_low_guess,
+            &rate_high_guess,
+            &iteration_limit,
+        );
 
         assert!(irr_approximation.is_valid());
         assert!(irr_approximation.get_npv() <= NPV_PRECISION);
@@ -178,8 +199,12 @@ mod bisection_tests {
         let rate_low_guess: f64 = 0.05;
         let rate_high_guess: f64 = 0.18;
         let iteration_limit: i16 = 100;
-        let calculated_irr: Irr<f64> =
-            irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+        let calculated_irr: Irr<f64> = irr(
+            cash_flows.iter(),
+            &rate_low_guess,
+            &rate_high_guess,
+            &iteration_limit,
+        );
 
         assert!(calculated_irr.is_valid());
         assert!(calculated_irr.get_npv() <= f64::from(NPV_PRECISION));
@@ -203,8 +228,12 @@ mod bisection_tests {
         let rate_low_guess: f32 = 0.01;
         let rate_high_guess: f32 = 0.05;
         let iteration_limit: i16 = 100;
-        let calculated_irr: Irr<f32> =
-            irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+        let calculated_irr: Irr<f32> = irr(
+            cash_flows.iter(),
+            &rate_low_guess,
+            &rate_high_guess,
+            &iteration_limit,
+        );
 
         assert!(calculated_irr.is_valid());
         assert!(calculated_irr.get_npv() <= NPV_PRECISION);
@@ -228,8 +257,12 @@ mod bisection_tests {
         let rate_low_guess: f64 = 0.01;
         let rate_high_guess: f64 = 0.05;
         let iteration_limit: i16 = 100;
-        let calculated_irr: Irr<f64> =
-            irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+        let calculated_irr: Irr<f64> = irr(
+            cash_flows.iter(),
+            &rate_low_guess,
+            &rate_high_guess,
+            &iteration_limit,
+        );
 
         assert!(calculated_irr.is_valid());
         assert!(calculated_irr.get_npv() <= f64::from(NPV_PRECISION));
@@ -253,8 +286,12 @@ mod bisection_tests {
         let rate_low_guess: f32 = -0.25;
         let rate_high_guess: f32 = 0.25;
         let iteration_limit: i16 = 100;
-        let calculated_irr: Irr<f32> =
-            irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+        let calculated_irr: Irr<f32> = irr(
+            cash_flows.iter(),
+            &rate_low_guess,
+            &rate_high_guess,
+            &iteration_limit,
+        );
 
         assert!(calculated_irr.is_valid());
         assert!(calculated_irr.get_npv() <= NPV_PRECISION);
@@ -278,8 +315,12 @@ mod bisection_tests {
         let rate_low_guess: f64 = -0.25;
         let rate_high_guess: f64 = 0.25;
         let iteration_limit: i16 = 100;
-        let calculated_irr: Irr<f64> =
-            irr(cash_flows.iter(), &rate_low_guess, &rate_high_guess, &iteration_limit);
+        let calculated_irr: Irr<f64> = irr(
+            cash_flows.iter(),
+            &rate_low_guess,
+            &rate_high_guess,
+            &iteration_limit,
+        );
 
         assert!(calculated_irr.is_valid());
         assert!(calculated_irr.get_npv() <= f64::from(NPV_PRECISION));
