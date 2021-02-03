@@ -24,62 +24,44 @@ pub fn determine<T>(cash_flows: Iter<T>, rate_guess: &T, iteration_limit: &i16) 
         );
     }
 
-    let mut f: T = T::from(10.00).unwrap();
-    let mut rate_low: T = *rate_guess - f * T::epsilon();
-    let mut rate_high: T = *rate_guess + f * T::epsilon();
+    let mut epsilon_multiple: T = T::from(10.00).unwrap();
+    let mut rate_low: T = *rate_guess - epsilon_multiple * T::epsilon();
+    let mut rate_high: T = *rate_guess + epsilon_multiple * T::epsilon();
     let mut npv_rate_low: T = pv(cash_flows.clone(), &rate_low);
     let mut npv_rate_high: T = pv(cash_flows.clone(), &rate_high);
     let mut iterations_run: i16 = 0;
+    let go_low: bool = abs(npv_rate_low) < abs(npv_rate_high);
 
-    if abs(npv_rate_low) < abs(npv_rate_high) {
-        for _ in 0..*iteration_limit {
-            if npv_rate_low * npv_rate_high <= T::zero() {
-                return InitialBounds::new(
-                    rate_low,
-                    npv_rate_low,
-                    rate_high,
-                    npv_rate_high,
-                    *iteration_limit,
-                    iterations_run,
-                    true,
-                );
-            }
+    while iterations_run < *iteration_limit {
+        if npv_rate_low * npv_rate_high <= T::zero() {
+            return InitialBounds::new(
+                rate_low,
+                npv_rate_low,
+                rate_high,
+                npv_rate_high,
+                *iteration_limit,
+                iterations_run,
+                true,
+            );
+        }
 
+        epsilon_multiple = generate_epsilon_multiple(epsilon_multiple);
+
+        if go_low {
             rate_high = rate_low;
-            f = f * T::from(2.0).unwrap();
-            rate_low = rate_low - f * T::epsilon();
-
-            npv_rate_low = pv(cash_flows.clone(), &rate_low);
-            npv_rate_high = pv(cash_flows.clone(), &rate_high);
-
-            iterations_run = iterations_run + 1;
-        }
-    } else {
-        for _ in 0..*iteration_limit {
-            if npv_rate_low * npv_rate_high <= T::zero() {
-                return InitialBounds::new(
-                    rate_low,
-                    npv_rate_low,
-                    rate_high,
-                    npv_rate_high,
-                    *iteration_limit,
-                    iterations_run,
-                    true,
-                );
-            }
-
+            rate_low = rate_low - epsilon_multiple * T::epsilon();
+        } else {
             rate_low = rate_high;
-            f = f * T::from(2.0).unwrap();
-            rate_high = rate_high + rate_high * f * T::epsilon();
-
-            npv_rate_low = pv(cash_flows.clone(), &rate_low);
-            npv_rate_high = pv(cash_flows.clone(), &rate_high);
-
-            iterations_run = iterations_run + 1;
+            rate_high = rate_high + epsilon_multiple * T::epsilon();
         }
+
+        npv_rate_low = pv(cash_flows.clone(), &rate_low);
+        npv_rate_high = pv(cash_flows.clone(), &rate_high);
+
+        iterations_run = iterations_run + 1;
     }
 
-    return InitialBounds::new(
+    InitialBounds::new(
         rate_low,
         npv_rate_low,
         rate_high,
@@ -87,7 +69,18 @@ pub fn determine<T>(cash_flows: Iter<T>, rate_guess: &T, iteration_limit: &i16) 
         *iteration_limit,
         iterations_run,
         false,
-    );
+    )
+}
+
+fn generate_epsilon_multiple<T>(epsilon_multiple: T) -> T
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+{
+    if epsilon_multiple < T::max_value() / T::from(2.0).unwrap() {
+        epsilon_multiple * T::from(2.0).unwrap()
+    } else {
+        T::max_value()
+    }
 }
 
 #[cfg(test)]
@@ -130,7 +123,7 @@ mod determine_test {
                 &rate_guess,
                 &iteration_limit,
             );
-            
+
             if initial_bounds.is_valid() {
                 assert!(initial_bounds.get_npv_rate_low() * initial_bounds.get_npv_rate_high() <= 0.00);
             } else {
