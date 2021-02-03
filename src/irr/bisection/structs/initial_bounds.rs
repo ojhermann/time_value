@@ -1,7 +1,23 @@
+//! A struct containing information for determining the initial bounds for use with the bisection method.
+
 use num::{Float, Signed};
 use std::iter::{Product, Sum};
 use std::fmt::{Display, Debug, Formatter, Error};
 
+/// # Example
+/// ```
+/// use time_value::irr::bisection::structs::initial_bounds::InitialBounds;
+///
+/// let initial_bounds = InitialBounds::new(
+/// 0.01,
+/// 1.00,
+/// 0.02,
+/// 2.00,
+/// 100,
+/// 24,
+/// true,
+/// );
+/// ```
 pub struct InitialBounds<T>
     where
         T: Float + Product<T> + Sum<T> + Signed + Display + Debug,

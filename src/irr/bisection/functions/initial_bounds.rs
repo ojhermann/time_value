@@ -1,3 +1,5 @@
+//! Calculate the initial rates to use with the bisection method.
+
 use num::{Float, Signed, abs};
 use std::iter::{Product, Sum};
 use std::fmt::{Display, Debug};
@@ -7,6 +9,29 @@ use crate::irr::bisection::constants::NPV_PRECISION;
 use crate::irr::bisection::structs::initial_bounds::InitialBounds;
 use crate::present_value::from_cash_flows_and_discount_rate as pv;
 
+/// This will find a pair of initial rates, one with a negative NPV and the other with a positive NPV, for use with the bisection method.
+///
+/// # Example
+/// ```
+/// use time_value::irr::bisection::functions::initial_bounds;
+/// use time_value::irr::bisection::structs::initial_bounds::InitialBounds;
+///
+/// let mut cash_flows: Vec<f32> = vec![-100.00];
+///         for _ in 0..10 {
+///             cash_flows.push(20.00);
+///         }
+///
+///         let rate_guess: f32 = 0.10;
+///         let iteration_limit: i16 = 100;
+///
+///         let initial_bounds: InitialBounds<f32> = initial_bounds::determine(
+///             cash_flows.iter(),
+///             &rate_guess,
+///             &iteration_limit,
+///         );
+///
+///         assert!(initial_bounds.is_valid())
+/// ```
 pub fn determine<T>(cash_flows: Iter<T>, rate_guess: &T, iteration_limit: &i16) -> InitialBounds<T>
     where
         T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
