@@ -1,4 +1,4 @@
-//! A collection of functions for calculating present values.
+//! Functions for calculating present values.
 
 use num::Float;
 use std::iter::{Product, Sum};

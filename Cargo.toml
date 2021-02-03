@@ -1,6 +1,6 @@
 [package]
 name = "time_value"
-version = "0.4.2"
+version = "0.6.0"
 authors = ["Otto Hermann <ojhermann@gmail.com>"]
 edition = "2018"
 description = "A collection of functions related to time value analysis."
