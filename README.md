@@ -6,7 +6,7 @@ Functions and structs related to time value analysis.
 
 Functions for calculating future values.
 
-## [`irr`](https://github.com/ojhermann/time_value/blob/master/src/irr.rs)
+## [`irr`](https://github.com/ojhermann/time_value/tree/master/src/irr/bisection)
 
 Functions and structs for calculating the internal rate of return (IRR) of a series of cash flows.
 
