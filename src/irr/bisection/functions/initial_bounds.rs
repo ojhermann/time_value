@@ -1,8 +1,8 @@
 //! Calculate the initial rates to use with the bisection method.
 
-use num::{Float, Signed, abs};
+use num::{abs, Float, Signed};
+use std::fmt::{Debug, Display};
 use std::iter::{Product, Sum};
-use std::fmt::{Display, Debug};
 use std::slice::Iter;
 
 use crate::irr::bisection::constants::NPV_PRECISION;
@@ -33,8 +33,8 @@ use crate::present_value::from_cash_flows_and_discount_rate as pv;
 ///         assert!(initial_bounds.is_valid())
 /// ```
 pub fn determine<T>(cash_flows: Iter<T>, rate_guess: &T, iteration_limit: &i16) -> InitialBounds<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+where
+    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     let npv_rate_guess: T = pv(cash_flows.clone(), &rate_guess);
     if abs(pv(cash_flows.clone(), &rate_guess)) < T::from(NPV_PRECISION).unwrap() {
@@ -98,8 +98,8 @@ pub fn determine<T>(cash_flows: Iter<T>, rate_guess: &T, iteration_limit: &i16) 
 }
 
 fn generate_epsilon_multiple<T>(epsilon_multiple: T) -> T
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+where
+    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     if epsilon_multiple < T::max_value() / T::from(2.0).unwrap() {
         epsilon_multiple * T::from(2.0).unwrap()
@@ -114,15 +114,15 @@ mod determine_test {
     use rand::distributions::uniform::SampleUniform;
     use rand::prelude::ThreadRng;
     use rand::{thread_rng, Rng};
-    use std::fmt::{Display, Debug};
+    use std::fmt::{Debug, Display};
     use std::iter::{Product, Sum};
 
     use crate::irr::bisection::functions::initial_bounds;
     use crate::irr::bisection::structs::initial_bounds::InitialBounds;
 
     fn generate_random_cash_flows<T>(thread_range: &mut ThreadRng, vector_size: &i16) -> Vec<T>
-        where
-            T: Float + Product<T> + Sum<T> + Signed + Display + Debug + SampleUniform,
+    where
+        T: Float + Product<T> + Sum<T> + Signed + Display + Debug + SampleUniform,
     {
         //ensure the first element is negative
         let mut cash_flows: Vec<T> =
@@ -143,16 +143,18 @@ mod determine_test {
         let mut cash_flows: Vec<f32> = generate_random_cash_flows(&mut thread_range, &vector_size);
 
         for _ in 0..100 {
-            let initial_bounds: InitialBounds<f32> = initial_bounds::determine(
-                cash_flows.iter(),
-                &rate_guess,
-                &iteration_limit,
-            );
+            let initial_bounds: InitialBounds<f32> =
+                initial_bounds::determine(cash_flows.iter(), &rate_guess, &iteration_limit);
 
             if initial_bounds.is_valid() {
-                assert!(initial_bounds.get_npv_rate_low() * initial_bounds.get_npv_rate_high() <= 0.00);
+                assert!(
+                    initial_bounds.get_npv_rate_low() * initial_bounds.get_npv_rate_high() <= 0.00
+                );
             } else {
-                assert_eq!(initial_bounds.get_iteration_limit(), initial_bounds.get_iterations_run());
+                assert_eq!(
+                    initial_bounds.get_iteration_limit(),
+                    initial_bounds.get_iterations_run()
+                );
             }
 
             cash_flows = generate_random_cash_flows(&mut thread_range, &vector_size)
@@ -169,11 +171,8 @@ mod determine_test {
         let rate_guess: f32 = 0.150984;
         let iteration_limit: i16 = 0;
 
-        let initial_bounds: InitialBounds<f32> = initial_bounds::determine(
-            cash_flows.iter(),
-            &rate_guess,
-            &iteration_limit,
-        );
+        let initial_bounds: InitialBounds<f32> =
+            initial_bounds::determine(cash_flows.iter(), &rate_guess, &iteration_limit);
 
         assert!(initial_bounds.is_valid())
     }
@@ -188,11 +187,8 @@ mod determine_test {
         let rate_guess: f32 = 0.10;
         let iteration_limit: i16 = 0;
 
-        let initial_bounds: InitialBounds<f32> = initial_bounds::determine(
-            cash_flows.iter(),
-            &rate_guess,
-            &iteration_limit,
-        );
+        let initial_bounds: InitialBounds<f32> =
+            initial_bounds::determine(cash_flows.iter(), &rate_guess, &iteration_limit);
 
         assert!(!initial_bounds.is_valid())
     }
@@ -207,11 +203,8 @@ mod determine_test {
         let rate_guess: f32 = 0.10;
         let iteration_limit: i16 = 100;
 
-        let initial_bounds: InitialBounds<f32> = initial_bounds::determine(
-            cash_flows.iter(),
-            &rate_guess,
-            &iteration_limit,
-        );
+        let initial_bounds: InitialBounds<f32> =
+            initial_bounds::determine(cash_flows.iter(), &rate_guess, &iteration_limit);
 
         assert!(initial_bounds.is_valid())
     }
@@ -226,11 +219,8 @@ mod determine_test {
         let rate_guess: f32 = 0.2;
         let iteration_limit: i16 = 100;
 
-        let initial_bounds: InitialBounds<f32> = initial_bounds::determine(
-            cash_flows.iter(),
-            &rate_guess,
-            &iteration_limit,
-        );
+        let initial_bounds: InitialBounds<f32> =
+            initial_bounds::determine(cash_flows.iter(), &rate_guess, &iteration_limit);
 
         assert!(initial_bounds.is_valid())
     }

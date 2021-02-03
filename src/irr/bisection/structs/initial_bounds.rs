@@ -1,8 +1,8 @@
 //! A struct containing information for determining the initial bounds for use with the bisection method.
 
 use num::{Float, Signed};
+use std::fmt::{Debug, Display, Error, Formatter};
 use std::iter::{Product, Sum};
-use std::fmt::{Display, Debug, Formatter, Error};
 
 /// # Example
 /// ```
@@ -19,8 +19,8 @@ use std::fmt::{Display, Debug, Formatter, Error};
 /// );
 /// ```
 pub struct InitialBounds<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+where
+    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     rate_low: T,
     npv_rate_low: T,
@@ -32,8 +32,8 @@ pub struct InitialBounds<T>
 }
 
 impl<T> InitialBounds<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+where
+    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     pub fn new(
         rate_low: T,
@@ -85,8 +85,8 @@ impl<T> InitialBounds<T>
 }
 
 impl<T> Debug for InitialBounds<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Debug + Display,
+where
+    T: Float + Product<T> + Sum<T> + Signed + Debug + Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         f.debug_struct("InitialBounds")
@@ -102,8 +102,8 @@ impl<T> Debug for InitialBounds<T>
 }
 
 impl<T> Display for InitialBounds<T>
-    where
-        T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
+where
+    T: Float + Product<T> + Sum<T> + Signed + Display + Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
