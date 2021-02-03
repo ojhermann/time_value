@@ -22,6 +22,7 @@ pub mod irr {
         pub mod structs {
             //! Structs used with the bisection method
 
+            pub mod initial_bounds;
             pub mod irr;
         }
     }
