@@ -1,4 +1,4 @@
-//! A collection of functions for calculating future values.
+//! Functions for calculating future values.
 
 use num::Float;
 use std::iter::Product;

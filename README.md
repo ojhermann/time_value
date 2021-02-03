@@ -1,22 +1,15 @@
 # [`time_value`](https://crates.io/crates/time_value)
-A collection of functions related to time value analysis.
 
-## Contents
-- [`future_value`](#future_value)
-- [`irr`](#irr)
-- [`present_value`](#present_value)
-
+Functions and structs related to time value analysis.
 
 ## [`future_value`](https://github.com/ojhermann/time_value/blob/master/src/future_value.rs)
-A collection of functions for calculating future values.
-- [`from_pv_and_expected_rates`](https://github.com/ojhermann/time_value/blob/55e71fd5c5571341baac0ca2dab8b62f50ac910b/src/future_value.rs#L53-L58)
+
+Functions for calculating future values.
 
 ## [`irr`](https://github.com/ojhermann/time_value/blob/master/src/irr.rs)
-A collection of functions for calculating the internal rate of return (IRR) of a series of cash flows.
-- [`bisection`](https://github.com/ojhermann/time_value/blob/master/src/irr.rs#L197-L256)
 
+Functions and structs for calculating the internal rate of return (IRR) of a series of cash flows.
 
 ## [`present_value`](https://github.com/ojhermann/time_value/blob/master/src/present_value.rs)
-A collection of functions for calculating present values.
-- [`from_cash_flows_and_discount_rate`](https://github.com/ojhermann/time_value/blob/master/src/present_value.rs#L85-L95)
-- [`present_value`](https://github.com/ojhermann/time_value/blob/master/src/present_value.rs#L43-L51)
+
+Functions for calculating present values.
