@@ -83,7 +83,7 @@ where
     let precision: T = T::from(NPV_PRECISION).unwrap();
 
     while iterations_run < *iteration_limit && !are_equal_enough::is_true(&precision, &npv) {
-        iterations_run = iterations_run + 1;
+        iterations_run += 1;
 
         if npv_rate_low * npv < T::zero() {
             rate_high = irr;
