@@ -83,7 +83,7 @@ where
         npv_rate_low = pv(cash_flows.clone(), &rate_low);
         npv_rate_high = pv(cash_flows.clone(), &rate_high);
 
-        iterations_run = iterations_run + 1;
+        iterations_run += 1;
     }
 
     InitialBounds::new(

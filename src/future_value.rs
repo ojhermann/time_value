@@ -4,7 +4,6 @@ use num::Float;
 use std::iter::Product;
 use std::slice::Iter;
 
-#[allow(dead_code)]
 /// Converts a present value and expected rates into a future value.
 ///
 /// # Example with f32
@@ -50,8 +49,8 @@ use std::slice::Iter;
 /// assert!(abs(value - expected_value) < 0.001)
 /// ```
 pub fn from_pv_and_expected_rates<T>(present_value: &T, expected_rates: Iter<T>) -> T
-    where
-        T: Float + Product<T>,
+where
+    T: Float + Product<T>,
 {
     expected_rates.fold(*present_value, |acc, x| acc * (T::one() + *x))
 }
@@ -60,7 +59,6 @@ pub fn from_pv_and_expected_rates<T>(present_value: &T, expected_rates: Iter<T>)
 mod from_pv_and_expected_rates_tests {
     use crate::future_value::from_pv_and_expected_rates as fv;
     use num::abs;
-
 
     #[test]
     fn it_works_with_no_rates() {

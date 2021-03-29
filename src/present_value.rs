@@ -44,7 +44,7 @@ pub fn present_value<T>(cash_flow: &T, period: usize, discount_rate: &T) -> T
 where
     T: Float + Product<T>,
 {
-    let period: i32 = (period as i32) * -1;
+    let period: i32 = -(period as i32);
     let discount: T = T::one() + *discount_rate;
     let discount_factor: T = discount.powi(period);
     *cash_flow * discount_factor
